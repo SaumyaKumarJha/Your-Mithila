@@ -1,0 +1,338 @@
+"use client";
+import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
+import { useState, useEffect, useRef } from "react";
+import {
+  Menu, X, Sun, Moon, Monitor, ChevronDown,
+  Home, Briefcase, LogOut, Settings, Shield,
+  HelpCircle, Heart, User, MessageCircle, Bot,
+} from "lucide-react";
+import { useTheme } from "next-themes";
+import { Logo } from "@/components/Logo";
+
+const PROPERTY_LINKS = [
+  { href: "/properties",              label: "All Properties" },
+  { href: "/properties?purpose=RENT", label: "🏠 For Rent"    },
+  { href: "/properties?purpose=SALE", label: "🔑 For Sale"    },
+  { href: "/properties?type=FLAT",    label: "Flats"          },
+  { href: "/properties?type=ROOM",    label: "Rooms"          },
+  { href: "/properties?type=HOUSE",   label: "Houses"         },
+  { href: "/properties?type=SHOP",    label: "Shops"          },
+  { href: "/properties?type=LAND",    label: "Land"           },
+];
+
+const JOB_LINKS = [
+  { href: "/jobs",                    label: "All Jobs"      },
+  { href: "/jobs?jobType=FULL_TIME",  label: "Full Time"     },
+  { href: "/jobs?jobType=PART_TIME",  label: "Part Time"     },
+  { href: "/jobs?jobType=DAILY_WAGE", label: "Daily Wage"    },
+  { href: "/jobs?orgType=HOTEL",      label: "Hotel Jobs"    },
+  { href: "/jobs?orgType=HOSPITAL",   label: "Hospital Jobs" },
+  { href: "/jobs?orgType=SCHOOL",     label: "School Jobs"   },
+];
+
+const HELP_LINKS = [
+  { href: "/faq",     label: "❓ FAQ"          },
+  { href: "/contact", label: "📞 Contact Us"    },
+  { href: "/about",   label: "ℹ️ About"         },
+  { href: "/pricing", label: "💳 Pricing"        },
+];
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return <div className="w-8 h-8" />;
+  return (
+    <button
+      onClick={() => setTheme(theme === "dark" ? "light" : theme === "light" ? "system" : "dark")}
+      className="p-2 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-alt)] transition-colors"
+      aria-label={`Switch theme (${theme})`}
+    >
+      {theme === "dark"
+        ? <Moon    className="w-4 h-4 text-blue-400" />
+        : theme === "light"
+        ? <Sun     className="w-4 h-4 text-yellow-500" />
+        : <Monitor className="w-4 h-4 text-[var(--text-tertiary)]" />}
+    </button>
+  );
+}
+
+function Dropdown({ label, links, icon: Icon }: {
+  label: string;
+  links: { href: string; label: string }[];
+  icon: any;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors py-2"
+        aria-expanded={open}
+      >
+        <Icon className="w-4 h-4" />
+        {label}
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1 w-48 bg-[var(--surface)] rounded-2xl shadow-xl border border-[var(--border)] py-2 z-50 animate-fade-in">
+          {links.map(({ href, label }) => (
+            <Link key={href} href={href} onClick={() => setOpen(false)}
+              className="block px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--primary-light)] hover:text-[var(--primary)] transition-colors">
+              {label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function Navbar() {
+  const { data: session } = useSession();
+  const [menuOpen, setMenuOpen]   = useState(false);
+  const [userOpen, setUserOpen]   = useState(false);
+  const [chatOpen, setChatOpen]   = useState(false);
+  const userRef = useRef<HTMLDivElement>(null);
+  const role = (session?.user as any)?.role;
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (userRef.current && !userRef.current.contains(e.target as Node)) setUserOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Expose chatOpen state globally so Chatbot component can listen
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("ym-chat-toggle", { detail: { open: chatOpen } }));
+  }, [chatOpen]);
+
+  return (
+    <nav className="sticky top-0 z-50 bg-[var(--surface)] border-b border-[var(--border)] shadow-sm">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+
+        {/* Logo */}
+        <Link href="/" className="flex-shrink-0" aria-label="Your Mithila — Home">
+          <Logo size="md" />
+        </Link>
+
+        {/* Desktop nav */}
+        <div className="hidden md:flex items-center gap-6">
+          <Dropdown label="Properties" links={PROPERTY_LINKS} icon={Home} />
+          <Dropdown label="Jobs"       links={JOB_LINKS}      icon={Briefcase} />
+          <Link href="/pricing" className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors">
+            Pricing
+          </Link>
+          <Dropdown label="Help" links={HELP_LINKS} icon={HelpCircle} />
+
+          {/* WhatsApp quick-contact button */}
+          <a
+            href="https://wa.me/917033669971?text=Hi%2C%20I%20need%20help%20with%20Your%20Mithila%20website"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border transition-all hover:shadow-sm"
+            style={{ borderColor: "#25D366", color: "#25D366", background: "rgba(37,211,102,0.06)" }}
+            title="Chat on WhatsApp"
+          >
+            <MessageCircle className="w-4 h-4" />
+            WhatsApp
+          </a>
+
+          {/* AI Chat button */}
+          <button
+            onClick={() => setChatOpen(o => !o)}
+            className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border transition-all hover:shadow-sm"
+            style={{
+              borderColor: chatOpen ? "var(--primary)" : "var(--border)",
+              color:       chatOpen ? "var(--primary)" : "var(--text-secondary)",
+              background:  chatOpen ? "var(--primary-light)" : "transparent",
+            }}
+            title="How can I help you?"
+          >
+            <Bot className="w-4 h-4" />
+            Help Chat
+          </button>
+        </div>
+
+        {/* Right side */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+
+          {session ? (
+            <div ref={userRef} className="relative">
+              <button
+                onClick={() => setUserOpen(!userOpen)}
+                className="flex items-center gap-2 border border-[var(--border)] rounded-full px-3 py-1.5 hover:shadow-md transition-shadow bg-[var(--surface)]"
+                aria-label="User menu"
+              >
+                <Menu className="w-4 h-4 text-[var(--text-tertiary)]" />
+                <div className="w-7 h-7 bg-[var(--primary)] rounded-full flex items-center justify-center text-white text-xs font-bold select-none">
+                  {session.user?.name?.[0]?.toUpperCase()}
+                </div>
+              </button>
+
+              {userOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-[var(--surface)] rounded-2xl shadow-xl border border-[var(--border)] py-2 z-50 animate-fade-in">
+                  {/* User info */}
+                  <div className="px-4 py-2 border-b border-[var(--border)]">
+                    <p className="text-xs font-semibold truncate" style={{ color: "var(--text-primary)" }}>
+                      {session.user?.name}
+                    </p>
+                    <p className="text-xs truncate mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+                      {session.user?.email}
+                    </p>
+                  </div>
+
+                  {(role === "OWNER" || role === "ADMIN") && (
+                    <Link href="/dashboard" onClick={() => setUserOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-alt)] transition-colors">
+                      <Settings className="w-4 h-4" /> Dashboard
+                    </Link>
+                  )}
+                  {role === "ADMIN" && (
+                    <Link href="/admin" onClick={() => setUserOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--primary-light)] transition-colors"
+                      style={{ color: "var(--primary)" }}>
+                      <Shield className="w-4 h-4" /> Admin Panel
+                    </Link>
+                  )}
+                  {role === "SEEKER" && (
+                    <Link href="/saved" onClick={() => setUserOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-alt)] transition-colors">
+                      <Heart className="w-4 h-4" /> Saved Properties
+                    </Link>
+                  )}
+                  <Link href="/dashboard/profile" onClick={() => setUserOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-alt)] transition-colors">
+                    <User className="w-4 h-4" /> My Profile
+                  </Link>
+                  <button onClick={() => signOut({ callbackUrl: "/" })}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-alt)] border-t border-[var(--border)] mt-1 transition-colors">
+                    <LogOut className="w-4 h-4" /> Log out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="hidden sm:flex items-center gap-2">
+              <Link href="/auth/login"
+                className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--primary)] px-3 py-2 border border-[var(--border)] rounded-full transition-colors">
+                Log in
+              </Link>
+              <Link href="/auth/register"
+                className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-sm font-semibold px-4 py-2 rounded-full transition-colors">
+                Sign up
+              </Link>
+            </div>
+          )}
+
+          {/* Mobile hamburger */}
+          <button className="md:hidden p-1.5 rounded-lg hover:bg-[var(--surface-alt)] transition-colors"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu">
+            {menuOpen
+              ? <X    className="w-5 h-5 text-[var(--text-primary)]" />
+              : <Menu className="w-5 h-5 text-[var(--text-primary)]" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="md:hidden border-t border-[var(--border)] bg-[var(--surface)] px-4 py-4 space-y-0.5 animate-slide-up">
+          {[
+            { href: "/properties",              label: "🏠 Properties"     },
+            { href: "/properties?purpose=RENT", label: "  → For Rent"      },
+            { href: "/properties?purpose=SALE", label: "  → For Sale"      },
+            { href: "/jobs",                    label: "💼 Jobs"            },
+            { href: "/jobs?jobType=FULL_TIME",  label: "  → Full Time"     },
+            { href: "/jobs?jobType=DAILY_WAGE", label: "  → Daily Wage"    },
+            { href: "/pricing",                 label: "💳 Pricing"         },
+            { href: "/about",                   label: "ℹ️ About"           },
+            { href: "/contact",                 label: "📞 Contact"         },
+            { href: "/faq",                     label: "❓ FAQ"             },
+          ].map(({ href, label }) => (
+            <Link key={href} href={href} onClick={() => setMenuOpen(false)}
+              className="block py-2.5 text-sm font-medium text-[var(--text-secondary)] border-b border-[var(--border-light)] hover:text-[var(--primary)] transition-colors">
+              {label}
+            </Link>
+          ))}
+
+          {/* WhatsApp + Chat in mobile menu */}
+          <div className="flex gap-3 pt-3 pb-1">
+            <a
+              href="https://wa.me/917033669971?text=Hi%2C%20I%20need%20help%20with%20Your%20Mithila%20website"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMenuOpen(false)}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white"
+              style={{ background: "#25D366" }}
+            >
+              <MessageCircle className="w-4 h-4" /> WhatsApp
+            </a>
+            <button
+              onClick={() => { setChatOpen(o => !o); setMenuOpen(false); }}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-colors"
+              style={{
+                borderColor: "var(--primary)",
+                color: "var(--primary)",
+                background: "var(--primary-light)",
+              }}
+            >
+              <Bot className="w-4 h-4" /> Help Chat
+            </button>
+          </div>
+
+          {!session ? (
+            <div className="flex gap-3 pt-3">
+              <Link href="/auth/login" onClick={() => setMenuOpen(false)}
+                className="flex-1 text-center border border-[var(--border)] text-sm font-medium py-2.5 rounded-full text-[var(--text-primary)] hover:bg-[var(--surface-alt)] transition-colors">
+                Log in
+              </Link>
+              <Link href="/auth/register" onClick={() => setMenuOpen(false)}
+                className="flex-1 text-center bg-[var(--primary)] text-white text-sm font-medium py-2.5 rounded-full hover:bg-[var(--primary-hover)] transition-colors">
+                Sign up
+              </Link>
+            </div>
+          ) : (
+            <div className="pt-3 space-y-0.5 border-t border-[var(--border)]">
+              {(role === "OWNER" || role === "ADMIN") && (
+                <Link href="/dashboard" onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 py-2.5 text-sm font-medium" style={{ color: "var(--primary)" }}>
+                  <Settings className="w-4 h-4" /> Dashboard
+                </Link>
+              )}
+              {role === "SEEKER" && (
+                <Link href="/saved" onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 py-2.5 text-sm font-medium text-[var(--text-secondary)]">
+                  <Heart className="w-4 h-4" /> Saved Properties
+                </Link>
+              )}
+              <Link href="/dashboard/profile" onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2 py-2.5 text-sm font-medium text-[var(--text-secondary)]">
+                <User className="w-4 h-4" /> My Profile
+              </Link>
+              <button onClick={() => { signOut({ callbackUrl: "/" }); setMenuOpen(false); }}
+                className="flex items-center gap-2 py-2.5 text-sm font-medium w-full text-left text-[var(--text-secondary)]">
+                <LogOut className="w-4 h-4" /> Log out
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </nav>
+  );
+}

@@ -1,0 +1,51 @@
+import type { Metadata } from "next";
+import { PricingClient } from "@/components/pricing/PricingClient";
+
+export const metadata: Metadata = {
+  title: "Subscription Plans — List Property in Madhubani Starting ₹99",
+  description:
+    "List your property in Madhubani starting at ₹99 per month. Reach hundreds of verified seekers. Verified badge, WhatsApp contact, priority search.",
+  openGraph: {
+    title: "List Property in Madhubani | Pricing | YourMithila",
+    description:
+      "Affordable plans to list your property in Madhubani Bihar.",
+    url: "https://yourmithila.in/pricing",
+  },
+  alternates: { canonical: "https://yourmithila.in/pricing" },
+};
+
+export default function PricingPage() {
+  return (
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="text-center mb-12">
+        <h1 className="text-3xl font-black" style={{ color: "var(--text-primary)" }}>
+          Simple, Transparent Pricing
+        </h1>
+        <p className="text-lg mt-2" style={{ color: "var(--text-tertiary)" }}>सरल और पारदर्शी मूल्य</p>
+        <p className="mt-3 max-w-xl mx-auto text-sm" style={{ color: "var(--text-secondary)" }}>
+          Start listing your properties and jobs in Mithila. No hidden charges.
+          Pay via UPI, card, or net banking.
+        </p>
+      </div>
+
+      <PricingClient />
+
+      <div className="mt-12 rounded-2xl p-6 text-center"
+        style={{ background: "var(--surface-alt)", border: "1px solid var(--border)" }}>
+        <h2 className="font-bold mb-2" style={{ color: "var(--text-primary)" }}>Already registered?</h2>
+        <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
+          Go to your dashboard to subscribe and start listing
+        </p>
+        <a href="/dashboard/subscription"
+          className="inline-block font-medium px-6 py-2.5 rounded-xl transition-colors text-sm text-white"
+          style={{ background: "var(--primary)" }}>
+          Go to Subscription
+        </a>
+      </div>
+
+      <p className="text-center text-xs mt-6" style={{ color: "var(--text-muted)" }}>
+        🔒 Payments secured by Razorpay • UPI, Cards, Net Banking, Wallets accepted
+      </p>
+    </div>
+  );
+}

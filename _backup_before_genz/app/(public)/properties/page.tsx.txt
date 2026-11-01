@@ -1,0 +1,184 @@
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { PropertyCard } from "@/components/property/PropertyCard";
+import { PropertyFilters } from "@/components/property/PropertyFilters";
+import { Suspense } from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Property in Madhubani — Flats, Rooms, Shops, Land for Rent & Sale",
+  description:
+    "Browse verified property listings in Madhubani, Bihar. Find flats, rooms, shops, offices, and land for rent or sale. Contact owners directly on WhatsApp. Free to browse.",
+  keywords: [
+    "property in madhubani",
+    "flat for rent madhubani",
+    "room for rent madhubani",
+    "shop for rent madhubani bihar",
+    "land for sale madhubani",
+    "house for rent madhubani",
+    "property madhubani bihar",
+    "mithila property",
+    "madhubani real estate",
+  ],
+  openGraph: {
+    title: "Property in Madhubani Bihar | YourMithila",
+    description:
+      "Find verified flats, rooms, shops and land in Madhubani. Free for seekers.",
+    url: "https://yourmithila.in/properties",
+  },
+  alternates: { canonical: "https://yourmithila.in/properties" },
+};
+
+interface SearchParams {
+  q?: string;
+  type?: string;
+  purpose?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  locality?: string;
+  bedrooms?: string;
+  verified?: string;
+  sort?: string;
+  page?: string;
+  [key: string]: string | undefined;
+}
+
+const PAGE_SIZE = 12;
+
+export default async function PropertiesPage({ searchParams }: { searchParams: SearchParams }) {
+  const page = parseInt(searchParams.page ?? "1");
+  const skip = (page - 1) * PAGE_SIZE;
+
+  const where: any = { isAvailable: true };
+  if (searchParams.q) {
+    where.OR = [
+      { title:       { contains: searchParams.q, mode: "insensitive" } },
+      { locality:    { contains: searchParams.q, mode: "insensitive" } },
+      { description: { contains: searchParams.q, mode: "insensitive" } },
+    ];
+  }
+  if (searchParams.type)     where.type     = searchParams.type;
+  if (searchParams.purpose)  where.purpose  = searchParams.purpose;
+  if (searchParams.locality) where.locality = { contains: searchParams.locality, mode: "insensitive" };
+  if (searchParams.bedrooms) where.bedrooms = parseInt(searchParams.bedrooms);
+  if (searchParams.verified === "true") where.isVerified = true;
+  if (searchParams.minPrice || searchParams.maxPrice) {
+    where.price = {};
+    if (searchParams.minPrice) where.price.gte = parseFloat(searchParams.minPrice);
+    if (searchParams.maxPrice) where.price.lte = parseFloat(searchParams.maxPrice);
+  }
+
+  const orderBy: any =
+    searchParams.sort === "price_asc"  ? { price: "asc" }
+    : searchParams.sort === "price_desc" ? { price: "desc" }
+    : searchParams.sort === "views"      ? { viewCount: "desc" }
+    : { createdAt: "desc" };
+
+  // Fetch properties + session in parallel
+  const [properties, total, session] = await Promise.all([
+    prisma.property.findMany({ where, orderBy, skip, take: PAGE_SIZE }),
+    prisma.property.count({ where }),
+    auth(),
+  ]);
+
+  // Fetch saved IDs for the logged-in user (for heart button hydration)
+  let savedIds: string[] = [];
+  if (session?.user) {
+    const userId = (session.user as any).id;
+    const saved = await prisma.savedProperty.findMany({
+      where: { userId },
+      select: { propertyId: true },
+    });
+    savedIds = saved.map(s => s.propertyId);
+  }
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
+          Properties in Madhubani &amp; Mithila Region
+        </h1>
+        <p className="text-sm mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+          {total} listing{total !== 1 ? "s" : ""} found
+        </p>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Filters sidebar */}
+        <aside className="lg:w-64 flex-shrink-0">
+          <Suspense>
+            <PropertyFilters searchParams={searchParams} />
+          </Suspense>
+        </aside>
+
+        {/* Results grid */}
+        <div className="flex-1">
+          {properties.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {properties.map(p => (
+                  <PropertyCard key={p.id} property={p} savedIds={savedIds} />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center gap-2 mt-8 flex-wrap items-center">
+                  {page > 1 && (
+                    <a
+                      href={`?${new URLSearchParams({ ...searchParams, page: String(page - 1) })}`}
+                      className="px-4 py-2 text-sm rounded-xl border transition-colors"
+                      style={{ borderColor: "var(--border)", color: "var(--text-secondary)", background: "var(--surface)" }}
+                    >
+                      ← Previous
+                    </a>
+                  )}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => Math.abs(p - page) <= 2 || p === 1 || p === totalPages)
+                    .map((p, idx, arr) => (
+                      <span key={p} className="flex items-center gap-1">
+                        {idx > 0 && arr[idx - 1] !== p - 1 && (
+                          <span className="text-sm" style={{ color: "var(--text-muted)" }}>…</span>
+                        )}
+                        <a
+                          href={`?${new URLSearchParams({ ...searchParams, page: String(p) })}`}
+                          className="w-9 h-9 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors"
+                          style={{
+                            background:   p === page ? "var(--primary)" : "var(--surface)",
+                            color:        p === page ? "white" : "var(--text-secondary)",
+                            borderColor:  p === page ? "var(--primary)" : "var(--border)",
+                          }}
+                        >
+                          {p}
+                        </a>
+                      </span>
+                    ))}
+                  {page < totalPages && (
+                    <a
+                      href={`?${new URLSearchParams({ ...searchParams, page: String(page + 1) })}`}
+                      className="px-4 py-2 text-sm rounded-xl border transition-colors"
+                      style={{ borderColor: "var(--border)", color: "var(--text-secondary)", background: "var(--surface)" }}
+                    >
+                      Next →
+                    </a>
+                  )}
+                  <span className="text-xs w-full text-center mt-1" style={{ color: "var(--text-muted)" }}>
+                    Page {page} of {totalPages} · {total} results
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-20 rounded-2xl" style={{ background: "var(--surface-alt)" }}>
+              <p className="text-5xl mb-3">🏠</p>
+              <p className="font-medium" style={{ color: "var(--text-primary)" }}>No properties found</p>
+              <p className="text-sm mt-1" style={{ color: "var(--text-tertiary)" }}>Try adjusting your filters</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

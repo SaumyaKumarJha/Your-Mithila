@@ -1,0 +1,73 @@
+import Link from "next/link";
+import { Logo } from "@/components/Logo";
+
+export function Footer() {
+  return (
+    <footer className="mt-16" style={{ background: "var(--gradient-footer)" }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-8">
+          <div className="col-span-2 sm:col-span-1">
+            <div className="mb-3">
+              <Logo size="md" variant="white" />
+            </div>
+            <p className="text-xs leading-relaxed" style={{ color: "#D4A574" }}>
+              मिथिला का अपना डिजिटल मंच।<br />
+              Properties & Jobs — all in one place.
+            </p>
+            <div className="flex gap-3 mt-4">
+              <a href="https://wa.me/917033669971?text=Hi, I need help with Your Mithila"
+                target="_blank" rel="noopener noreferrer"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold transition-opacity hover:opacity-80"
+                style={{ background: "#25D366" }}>W</a>
+              <a href="mailto:yourmithila.official@gmail.com"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold transition-opacity hover:opacity-80"
+                style={{ background: "var(--primary)" }}>@</a>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: "#F5EDE0" }}>Explore</p>
+            <ul className="space-y-2">
+              {[["Properties", "/properties"], ["Jobs", "/jobs"], ["Pricing", "/pricing"], ["FAQ", "/faq"]].map(([l, h]) => (
+                <li key={h}>
+                  <Link href={h} className="text-sm transition-colors hover:opacity-100" style={{ color: "#D4A574" }}>{l}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: "#F5EDE0" }}>Company</p>
+            <ul className="space-y-2">
+              {[["About", "/about"], ["Contact", "/contact"], ["Terms of service", "/terms"], ["Privacy policy", "/privacy"]].map(([l, h]) => (
+                <li key={h}>
+                  <Link href={h} className="text-sm transition-colors hover:opacity-100" style={{ color: "#D4A574" }}>{l}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: "#F5EDE0" }}>Contact</p>
+            <ul className="space-y-2 text-sm" style={{ color: "#D4A574" }}>
+              <li>
+                <a href="mailto:yourmithila.official@gmail.com" className="hover:opacity-80 transition-opacity break-all">
+                  yourmithila.official@gmail.com
+                </a>
+              </li>
+              <li>
+                <a href="tel:+917033669971" className="hover:opacity-80 transition-opacity">+91 70336 69971</a>
+              </li>
+              <li>Mithila Region, Bihar</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs" style={{ borderColor: "#3D2010", color: "#9C836A" }}>
+          <p>© {new Date().getFullYear()} Your Mithila. All rights reserved.</p>
+          <p>Made with ❤️ for Mithila</p>
+        </div>
+      </div>
+    </footer>
+  );
+}

@@ -1,0 +1,167 @@
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Search, ChevronDown } from "lucide-react";
+import { useLang } from "@/lib/lang-context";
+
+const SERVICE_OPTIONS = [
+  { value: "properties", label: "Properties", labelHi: "संपत्ति" },
+  { value: "jobs",       label: "Jobs",       labelHi: "नौकरी"  },
+];
+
+const CATEGORY_MAP: Record<string, { value: string; label: string; labelHi: string }[]> = {
+  properties: [
+    { value: "",             label: "All Types",  labelHi: "सभी प्रकार" },
+    { value: "FLAT",         label: "Flat",       labelHi: "फ्लैट"      },
+    { value: "ROOM",         label: "Room",       labelHi: "कमरा"       },
+    { value: "HOUSE",        label: "House",      labelHi: "मकान"       },
+    { value: "SHOP",         label: "Shop",       labelHi: "दुकान"      },
+    { value: "LAND",         label: "Land",       labelHi: "जमीन"       },
+    { value: "WAREHOUSE",    label: "Warehouse",  labelHi: "गोदाम"      },
+    { value: "OFFICE",       label: "Office",     labelHi: "ऑफिस"       },
+    { value: "VACANT_SPACE", label: "Vacant Space", labelHi: "खाली जगह" },
+  ],
+  jobs: [
+    { value: "",           label: "All Types",  labelHi: "सभी प्रकार" },
+    { value: "FULL_TIME",  label: "Full Time",  labelHi: "पूर्णकालिक" },
+    { value: "PART_TIME",  label: "Part Time",  labelHi: "अंशकालिक"   },
+    { value: "CONTRACT",   label: "Contract",   labelHi: "अनुबंध"     },
+    { value: "DAILY_WAGE", label: "Daily Wage", labelHi: "दैनिक मजदूरी" },
+  ],
+};
+
+const LOCALITIES = [
+  { value: "",              label: "All Localities", labelHi: "सभी इलाके"   },
+  { value: "Rajnagar",      label: "Rajnagar",       labelHi: "राजनगर"      },
+  { value: "Lakhnaur",      label: "Lakhnaur",       labelHi: "लखनौर"       },
+  { value: "Benipatti",     label: "Benipatti",      labelHi: "बेनीपट्टी"   },
+  { value: "Jaynagar",      label: "Jaynagar",       labelHi: "जयनगर"       },
+  { value: "Madhubani Sadar", label: "Madhubani Sadar", labelHi: "मधुबनी सदर" },
+  { value: "Phulparas",     label: "Phulparas",      labelHi: "फुलपरास"     },
+  { value: "Bisfi",         label: "Bisfi",          labelHi: "बिस्फी"      },
+  { value: "Pandaul",       label: "Pandaul",        labelHi: "पंडौल"       },
+  { value: "Harlakhi",      label: "Harlakhi",       labelHi: "हरलाखी"      },
+  { value: "Khajauli",      label: "Khajauli",       labelHi: "खजौली"       },
+  { value: "Darbhanga",     label: "Darbhanga",      labelHi: "दरभंगा"      },
+  { value: "Sitamarhi",     label: "Sitamarhi",      labelHi: "सीतामढ़ी"    },
+];
+
+function Select({
+  value, onChange, options, label, labelHi,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string; labelHi: string }[];
+  label: string;
+  labelHi: string;
+}) {
+  const { lang } = useLang();
+  return (
+    <div className="relative flex-1 min-w-0">
+      <label className="block text-xs font-semibold mb-1 px-1" style={{ color: "var(--text-tertiary)" }}>
+        {lang === "hi" ? labelHi : label}
+      </label>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          aria-label={lang === "hi" ? labelHi : label}
+          className="w-full appearance-none rounded-xl px-4 py-3 pr-9 text-sm font-medium outline-none transition-all cursor-pointer"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            color: "var(--text-primary)",
+          }}
+        >
+          {options.map(o => (
+            <option key={o.value} value={o.value}>
+              {lang === "hi" ? o.labelHi : o.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+      </div>
+    </div>
+  );
+}
+
+export function HeroSearch() {
+  const { lang, t } = useLang();
+  const router = useRouter();
+  const [service,  setService]  = useState("properties");
+  const [category, setCategory] = useState("");
+  const [locality, setLocality] = useState("");
+
+  function handleSearch() {
+    const params = new URLSearchParams();
+    if (service === "properties") {
+      if (category) params.set("type", category);
+      if (locality) params.set("locality", locality);
+      router.push(`/properties?${params.toString()}`);
+    } else {
+      if (category) params.set("jobType", category);
+      if (locality) params.set("locality", locality);
+      router.push(`/jobs?${params.toString()}`);
+    }
+  }
+
+  function handleServiceChange(v: string) {
+    setService(v);
+    setCategory("");
+  }
+
+  return (
+    <div className="w-full max-w-4xl mx-auto">
+      <div className="rounded-2xl shadow-xl p-4 sm:p-5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        {/* Dropdowns row */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Service Type */}
+          <Select
+            value={service}
+            onChange={handleServiceChange}
+            label="Service Type"
+            labelHi="सेवा प्रकार"
+            options={SERVICE_OPTIONS}
+          />
+
+          {/* Divider — visible on sm+ */}
+          <div className="hidden sm:block w-px self-stretch mt-6" style={{ background: "var(--border)" }} />
+
+          {/* Category */}
+          <Select
+            value={category}
+            onChange={setCategory}
+            label={service === "properties" ? "Property Type" : "Job Type"}
+            labelHi={service === "properties" ? "संपत्ति प्रकार" : "नौकरी प्रकार"}
+            options={CATEGORY_MAP[service]}
+          />
+
+          {/* Divider */}
+          <div className="hidden sm:block w-px self-stretch mt-6" style={{ background: "var(--border)" }} />
+
+          {/* Locality */}
+          <Select
+            value={locality}
+            onChange={setLocality}
+            label="Locality"
+            labelHi="इलाका"
+            options={LOCALITIES}
+          />
+
+          {/* Search button */}
+          <div className="flex items-end">
+            <button
+              onClick={handleSearch}
+              aria-label={t("Search", "खोजें")}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 text-white font-semibold px-6 py-3 rounded-xl transition-all text-sm whitespace-nowrap mt-5 sm:mt-0 self-end hover:opacity-90 active:scale-95"
+              style={{ background: "var(--primary)" }}
+            >
+              <Search className="w-4 h-4" />
+              {t("Search", "खोजें")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

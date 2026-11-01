@@ -1,0 +1,55 @@
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Home, Building2, Briefcase, User, LayoutDashboard, Shield } from "lucide-react";
+
+export function MobileBottomNav() {
+  const pathname = usePathname();
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.role;
+
+  // Role-based account destination
+  const accountHref =
+    role === "OWNER" ? "/dashboard" :
+    role === "ADMIN" ? "/admin" :
+    session ? "/saved" :
+    "/auth/login";
+
+  const accountLabel =
+    role === "OWNER" ? "Dashboard" :
+    role === "ADMIN" ? "Admin" :
+    session ? "Saved" :
+    "Account";
+
+  const AccountIcon =
+    role === "OWNER" ? LayoutDashboard :
+    role === "ADMIN" ? Shield :
+    User;
+
+  const NAV_ITEMS = [
+    { href: "/",           icon: Home,      label: "Home"       },
+    { href: "/properties", icon: Building2, label: "Properties" },
+    { href: "/jobs",       icon: Briefcase, label: "Jobs"       },
+    { href: accountHref,   icon: AccountIcon, label: accountLabel },
+  ];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 md:hidden z-40 border-t"
+      style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+      <div className="flex justify-around py-2 pb-safe">
+        {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
+          const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+          return (
+            <Link key={href} href={href}
+              className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors min-w-[60px]"
+              style={{ color: active ? "var(--primary)" : "var(--text-tertiary)" }}>
+              <Icon className="w-5 h-5" />
+              <span className="text-xs font-medium">{label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,238 @@
+import { prisma } from "@/lib/prisma";
+import { JobCard } from "@/components/job/JobCard";
+import { Suspense } from "react";
+import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Jobs in Madhubani — Local Job Openings in Mithila Region Bihar",
+  description:
+    "Find local jobs in Madhubani and Mithila region, Bihar. Hotels, hospitals, schools, shops hiring now. Daily wage, part time and full time jobs available.",
+  keywords: [
+    "jobs in madhubani",
+    "naukri madhubani",
+    "job vacancy madhubani bihar",
+    "local jobs mithila",
+    "hotel jobs madhubani",
+    "hospital jobs mithila",
+    "part time jobs madhubani",
+  ],
+  openGraph: {
+    title: "Jobs in Madhubani Bihar | YourMithila",
+    description:
+      "Local job openings in Madhubani and Mithila region. Free to apply.",
+    url: "https://yourmithila.in/jobs",
+  },
+  alternates: { canonical: "https://yourmithila.in/jobs" },
+};
+
+// ── Lazy-import the client filters inside Suspense ──────────────────────────
+import { JobFilters } from "@/components/job/JobFilters";
+
+interface SearchParams {
+  q?: string;
+  orgType?: string;
+  jobType?: string;
+  minSalary?: string;
+  locality?: string;
+  sort?: string;
+  page?: string;
+}
+
+const PAGE_SIZE = 12;
+
+const JOB_TYPE_LABELS: Record<string, string> = {
+  FULL_TIME: "Full Time",
+  PART_TIME: "Part Time",
+  CONTRACT:  "Contract",
+  DAILY_WAGE:"Daily Wage",
+};
+
+const ORG_TYPE_LABELS: Record<string, string> = {
+  HOTEL:    "Hotel",
+  HOSPITAL: "Hospital",
+  SCHOOL:   "School",
+  SHOP:     "Shop",
+  FACTORY:  "Factory",
+  OFFICE:   "Office",
+  HOME:     "Home",
+  OTHER:    "Other",
+};
+
+export default async function JobsPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const page    = Math.max(1, parseInt(searchParams.page ?? "1"));
+  const skip    = (page - 1) * PAGE_SIZE;
+
+  const where: any = { isActive: true };
+
+  if (searchParams.q) {
+    where.OR = [
+      { title:        { contains: searchParams.q, mode: "insensitive" } },
+      { organization: { contains: searchParams.q, mode: "insensitive" } },
+      { description:  { contains: searchParams.q, mode: "insensitive" } },
+      { locality:     { contains: searchParams.q, mode: "insensitive" } },
+    ];
+  }
+  if (searchParams.orgType)  where.orgType  = searchParams.orgType;
+  if (searchParams.jobType)  where.jobType  = searchParams.jobType;
+  if (searchParams.locality) where.locality = { contains: searchParams.locality, mode: "insensitive" };
+  if (searchParams.minSalary) where.salaryMin = { gte: parseFloat(searchParams.minSalary) };
+
+  const orderBy: any =
+    searchParams.sort === "views" ? { viewCount: "desc" }
+    : searchParams.sort === "salary" ? { salaryMin: "desc" }
+    : [{ isFeatured: "desc" }, { createdAt: "desc" }];
+
+  const [jobs, total] = await Promise.all([
+    prisma.job.findMany({ where, orderBy, skip, take: PAGE_SIZE }),
+    prisma.job.count({ where }),
+  ]);
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  // Active filter count for UX indicator
+  const activeFilters = [
+    searchParams.q, searchParams.orgType, searchParams.jobType,
+    searchParams.locality, searchParams.minSalary,
+  ].filter(Boolean).length;
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
+
+      {/* Page header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
+          Jobs in Mithila Region
+        </h1>
+        <p className="text-sm mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+          {total} opening{total !== 1 ? "s" : ""} found
+          {activeFilters > 0 && (
+            <span className="ml-2 text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ background: "var(--primary-light)", color: "var(--primary)" }}>
+              {activeFilters} filter{activeFilters > 1 ? "s" : ""} active
+            </span>
+          )}
+        </p>
+      </div>
+
+      {/* Filters — wrapped in Suspense because JobFilters uses useSearchParams internally */}
+      <Suspense fallback={
+        <div className="flex flex-wrap gap-2 mb-4 p-4 rounded-xl border animate-pulse"
+          style={{ background: "var(--surface-alt)", borderColor: "var(--border)" }}>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-8 w-28 rounded-lg skeleton" />
+          ))}
+        </div>
+      }>
+        <JobFilters searchParams={searchParams} />
+      </Suspense>
+
+      {/* Job type quick-filter pills */}
+      <div className="flex flex-wrap gap-2 mb-6 mt-2">
+        <Link
+          href={`/jobs${searchParams.q ? `?q=${searchParams.q}` : ""}`}
+          className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all"
+          style={!searchParams.jobType
+            ? { background: "var(--primary)", color: "white", borderColor: "var(--primary)" }
+            : { borderColor: "var(--border)", color: "var(--text-secondary)" }}
+        >
+          All Types
+        </Link>
+        {Object.entries(JOB_TYPE_LABELS).map(([key, label]) => {
+          const params = new URLSearchParams();
+          if (searchParams.q)        params.set("q",        searchParams.q);
+          if (searchParams.orgType)  params.set("orgType",  searchParams.orgType);
+          if (searchParams.locality) params.set("locality", searchParams.locality);
+          params.set("jobType", key);
+          const isActive = searchParams.jobType === key;
+          return (
+            <Link
+              key={key}
+              href={`/jobs?${params.toString()}`}
+              className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all"
+              style={isActive
+                ? { background: "var(--primary)", color: "white", borderColor: "var(--primary)" }
+                : { borderColor: "var(--border)", color: "var(--text-secondary)" }}
+            >
+              {label}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Results */}
+      {jobs.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {jobs.map(j => <JobCard key={j.id} job={j} />)}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-2 mt-8 flex-wrap">
+              {page > 1 && (
+                <Link
+                  href={`/jobs?${new URLSearchParams({ ...searchParams, page: String(page - 1) })}`}
+                  className="px-4 py-2 text-sm rounded-xl border transition-colors"
+                  style={{ borderColor: "var(--border)", color: "var(--text-secondary)", background: "var(--surface)" }}
+                >
+                  ← Previous
+                </Link>
+              )}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(p => Math.abs(p - page) <= 2 || p === 1 || p === totalPages)
+                .map((p, idx, arr) => (
+                  <span key={p} className="flex items-center gap-1">
+                    {idx > 0 && arr[idx - 1] !== p - 1 && (
+                      <span className="text-sm" style={{ color: "var(--text-muted)" }}>…</span>
+                    )}
+                    <Link
+                      href={`/jobs?${new URLSearchParams({ ...searchParams, page: String(p) })}`}
+                      className="w-9 h-9 flex items-center justify-center rounded-xl text-sm font-medium border transition-colors"
+                      style={p === page
+                        ? { background: "var(--primary)", color: "white", borderColor: "var(--primary)" }
+                        : { background: "var(--surface)", color: "var(--text-secondary)", borderColor: "var(--border)" }}
+                    >
+                      {p}
+                    </Link>
+                  </span>
+                ))}
+              {page < totalPages && (
+                <Link
+                  href={`/jobs?${new URLSearchParams({ ...searchParams, page: String(page + 1) })}`}
+                  className="px-4 py-2 text-sm rounded-xl border transition-colors"
+                  style={{ borderColor: "var(--border)", color: "var(--text-secondary)", background: "var(--surface)" }}
+                >
+                  Next →
+                </Link>
+              )}
+            </div>
+          )}
+        </>
+      ) : (
+        /* Empty state */
+        <div className="text-center py-20 rounded-2xl border-2 border-dashed"
+          style={{ background: "var(--surface-alt)", borderColor: "var(--border)" }}>
+          <p className="text-5xl mb-3">💼</p>
+          <p className="text-lg font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+            No jobs found
+          </p>
+          <p className="text-sm mb-6" style={{ color: "var(--text-tertiary)" }}>
+            {activeFilters > 0
+              ? "Try removing some filters to see more results."
+              : "No jobs have been posted yet. Check back soon!"}
+          </p>
+          {activeFilters > 0 && (
+            <Link href="/jobs" className="btn-primary text-sm px-6 py-2.5 rounded-xl">
+              Clear All Filters
+            </Link>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

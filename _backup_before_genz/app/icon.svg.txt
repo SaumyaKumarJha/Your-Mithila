@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="16" fill="#312E81"/>
+
+  <!-- House / roof shape (white) -->
+  <path d="M16 5 L5 14 L5 27 H11.5 V20 H20.5 V27 H27 V14 Z"
+        fill="none" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+
+  <!-- Madhubani fish motif (mustard gold) inside house -->
+  <ellipse cx="16" cy="19" rx="3" ry="4.5" fill="#D97706" opacity="0.95"/>
+  <!-- Fish tail -->
+  <path d="M16 14.5 Q18.5 17 16 19 Q13.5 17 16 14.5Z" fill="#FCD34D"/>
+  <!-- Fish eye -->
+  <circle cx="17" cy="16.5" r="0.7" fill="white"/>
+
+  <!-- Mustard dot accent — top right -->
+  <circle cx="24" cy="8" r="2.5" fill="#D97706"/>
+  <circle cx="24" cy="8" r="1" fill="white" opacity="0.5"/>
+</svg>

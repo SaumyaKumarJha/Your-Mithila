@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Block private/auth routes
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /api/
+Disallow: /auth/forgot-password
+Disallow: /choose-role
+Disallow: /seeker
+Disallow: /saved
+Disallow: /profile
+
+Sitemap: https://yourmithila.in/sitemap.xml

@@ -1,0 +1,40 @@
+import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Page Not Found | YourMithila",
+};
+
+export default function NotFound() {
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4"
+      style={{ background: "var(--background)" }}>
+      <div className="text-center">
+        <div className="text-8xl font-black mb-4" style={{ color: "var(--primary-light)" }}>404</div>
+        <div className="text-5xl mb-4">🏚️</div>
+        <h1 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
+          Page not found
+        </h1>
+        <p className="mb-6 text-sm" style={{ color: "var(--text-tertiary)" }}>
+          The page you are looking for doesn&apos;t exist or was moved.
+        </p>
+        <div className="flex gap-3 justify-center flex-wrap">
+          <Link
+            href="/"
+            className="px-5 py-2.5 text-white font-medium rounded-xl text-sm transition-all"
+            style={{ background: "var(--primary)" }}
+          >
+            ← Go Home
+          </Link>
+          <Link
+            href="/properties"
+            className="px-5 py-2.5 font-medium rounded-xl text-sm transition-all border"
+            style={{ borderColor: "var(--border)", color: "var(--text-secondary)", background: "var(--surface)" }}
+          >
+            Browse Properties
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}

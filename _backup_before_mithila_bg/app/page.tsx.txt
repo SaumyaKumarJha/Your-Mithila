@@ -1,0 +1,270 @@
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { ArrowUpRight, Search, Images, MessageCircle, BadgeCheck, ShieldCheck, Sparkles } from "lucide-react";
+import { HeroSearchWrapper } from "@/components/shared/HeroSearchWrapper";
+import { PropertyCard } from "@/components/property/PropertyCard";
+import { JobCard } from "@/components/job/JobCard";
+import { HeroPainting } from "@/components/genz/HeroPainting";
+import { Marquee } from "@/components/genz/Marquee";
+import { Sun, Fish } from "@/components/genz/Motifs";
+
+export const dynamic = "force-dynamic";
+
+// Each category is a sticker in its own pigment
+const CATEGORIES = [
+  { href: "/properties?type=FLAT",      label: "Flat",      labelHi: "फ्लैट",  emoji: "🏢", bg: "#FFC83D" },
+  { href: "/properties?type=ROOM",      label: "Room",      labelHi: "कमरा",   emoji: "🛏️", bg: "#FF8DB8" },
+  { href: "/properties?type=HOUSE",     label: "House",     labelHi: "मकान",   emoji: "🏠", bg: "#B9F3CF" },
+  { href: "/properties?type=SHOP",      label: "Shop",      labelHi: "दुकान",  emoji: "🏪", bg: "#FFB3AA" },
+  { href: "/properties?type=LAND",      label: "Land",      labelHi: "जमीन",   emoji: "🌿", bg: "#FFE9A8" },
+  { href: "/properties?type=WAREHOUSE", label: "Warehouse", labelHi: "गोदाम",  emoji: "🏭", bg: "#FFFFFF" },
+  { href: "/properties?type=OFFICE",    label: "Office",    labelHi: "ऑफिस",   emoji: "💼", bg: "#C9CEFF" },
+  { href: "/jobs",                      label: "Jobs",      labelHi: "नौकरी",  emoji: "🧑‍🍳", bg: "#2D3FCF", light: true },
+];
+
+const QUICK = [
+  { icon: "🏢", label: "Flat for rent", href: "/properties?type=FLAT&purpose=RENT" },
+  { icon: "🛏️", label: "Room for rent", href: "/properties?type=ROOM&purpose=RENT" },
+  { icon: "🏪", label: "Shop for rent", href: "/properties?type=SHOP&purpose=RENT" },
+  { icon: "🌿", label: "Land for sale", href: "/properties?type=LAND&purpose=SALE" },
+];
+
+const LOCALITIES = ["Rajnagar", "Lakhnaur", "Benipatti", "Jaynagar", "Madhubani Sadar", "Phulparas", "Bisfi", "Pandaul"];
+
+const STEPS = [
+  { icon: Search,        title: "Search",   hi: "खोजें",   desc: "Pick a type and a locality. Filter by budget.", bg: "#FFC83D" },
+  { icon: Images,        title: "Check",    hi: "देखें",   desc: "See photos, price and details before you call.", bg: "#FF8DB8" },
+  { icon: MessageCircle, title: "WhatsApp", hi: "बात करें", desc: "Message the owner or employer directly. No middleman.", bg: "#25D366" },
+];
+
+const PROMISES = [
+  { icon: Sparkles,      title: "Free to browse",    sub: "मुफ्त में देखें" },
+  { icon: BadgeCheck,    title: "Verified listings", sub: "सत्यापित लिस्टिंग" },
+  { icon: MessageCircle, title: "WhatsApp direct",   sub: "सीधे WhatsApp" },
+  { icon: ShieldCheck,   title: "Local and trusted", sub: "स्थानीय और विश्वसनीय" },
+];
+
+function SectionHead({ title, sub, href, cta, light }: { title: string; sub: string; href?: string; cta?: string; light?: boolean }) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+      <div>
+        <h2 className="gz-h2">{title}</h2>
+        <p className="gz-sub" lang="hi">{sub}</p>
+      </div>
+      {href && (
+        <Link href={href} className="gz-chip" style={light ? { background: "#fff", color: "var(--ink)", borderColor: "var(--ink)" } : undefined}>
+          {cta} <ArrowUpRight className="w-4 h-4" />
+        </Link>
+      )}
+    </div>
+  );
+}
+
+export default async function HomePage() {
+  const [properties, jobs, propertyCount, jobCount] = await Promise.all([
+    prisma.property.findMany({
+      where: { isAvailable: true },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      take: 6,
+    }),
+    prisma.job.findMany({
+      where: { isActive: true },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      take: 6,
+    }),
+    prisma.property.count({ where: { isAvailable: true } }).catch(() => 0),
+    prisma.job.count({ where: { isActive: true } }).catch(() => 0),
+  ]);
+
+  return (
+    <main className="min-h-screen overflow-x-clip" style={{ background: "var(--background)" }}>
+
+      {/* ── HERO: sticker headline + a Madhubani painting that tilts in 3D ── */}
+      <section className="gz-hero">
+        {/* phones get two floating stickers instead of the full painting */}
+        <Sun className="gz-float gz-float-sun lg:hidden" />
+        <Fish uid="float" color="#D63A24" className="gz-float gz-float-fish lg:hidden hidden sm:block" />
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-16 sm:pt-14 lg:pt-16 lg:pb-20 grid lg:grid-cols-[1.15fr_0.85fr] gap-12 lg:gap-10 items-center">
+          <div className="min-w-0">
+            <p className="gz-kicker mb-5" lang="hi">मिथिला का अपना डिजिटल मंच</p>
+
+            <h1 className="gz-h1">
+              <span className="gz-stickers">
+                <span className="gz-sticker gz-sticker-1">Ghar.</span>
+                <span className="gz-sticker gz-sticker-2">Dukaan.</span>
+                <span className="gz-sticker gz-sticker-3">Naukri.</span>
+              </span>
+              <span className="gz-h1-tail">Sab Mithila mein.</span>
+            </h1>
+
+            <p className="gz-hero-lede mt-4 mb-7">
+              Flats, rooms, shops, land and local jobs across Madhubani, Darbhanga and Sitamarhi.
+              Free for seekers, and you WhatsApp the owner yourself.
+            </p>
+
+            <div className="gz-hero-search max-w-2xl">
+              <HeroSearchWrapper />
+              <div className="flex flex-wrap gap-2 mt-5">
+                <Link href="/properties" className="gz-chip">🏠 {propertyCount}+ properties</Link>
+                <Link href="/jobs" className="gz-chip">💼 {jobCount}+ jobs hiring</Link>
+                <span className="gz-chip">₹0 for seekers</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden lg:block pr-2">
+            <HeroPainting />
+          </div>
+        </div>
+        <div className="gz-border" />
+      </section>
+
+      {/* ── MARQUEE: the places we cover ── */}
+      <Marquee />
+
+      {/* ── CATEGORIES ── */}
+      <section className="pt-16 pb-14">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionHead title="What are you looking for?" sub="क्या ढूंढ रहे हैं?" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-5">
+            {CATEGORIES.map(c => (
+              <Link key={c.href} href={c.href} className="gz-cat gz-tilt" style={{ background: c.bg, color: c.light ? "#fff" : "var(--ink)", borderColor: "var(--ink)" }}>
+                <span className="gz-cat-emoji" aria-hidden="true">{c.emoji}</span>
+                <span>
+                  <span className="gz-cat-label block">{c.label}</span>
+                  <span className="gz-cat-hi" lang="hi">{c.labelHi}</span>
+                </span>
+                <span className="gz-cat-go" aria-hidden="true"><ArrowUpRight className="w-4 h-4" style={{ color: "#1D1410" }} /></span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── LATEST PROPERTIES ── */}
+      <section className="pb-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionHead title="Fresh listings" sub="मिथिला क्षेत्र में नई संपत्तियां" href="/properties" cta="All properties" />
+          {properties.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {properties.map(p => <PropertyCard key={p.id} property={p} />)}
+            </div>
+          ) : (
+            <div className="gz-card p-10 text-center">
+              <p className="text-5xl mb-3" aria-hidden="true">🏠</p>
+              <p className="font-bold text-lg">No listings yet. Yours could be the first.</p>
+              <Link href="/auth/register" className="btn-primary mt-5">List your property</Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── LATEST JOBS (indigo field) ── */}
+      <section className="gz-jobs">
+        <div className="gz-border" />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
+          <SectionHead title="Hiring near you" sub="आपके आस-पास की नौकरियां" href="/jobs" cta="All jobs" light />
+          {jobs.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {jobs.map(j => <JobCard key={j.id} job={j} />)}
+            </div>
+          ) : (
+            <div className="gz-card p-10 text-center" style={{ color: "var(--text-primary)" }}>
+              <p className="text-5xl mb-3" aria-hidden="true">💼</p>
+              <p className="font-bold text-lg">No jobs posted yet.</p>
+              <Link href="/auth/register" className="btn-primary mt-5">Post a job</Link>
+            </div>
+          )}
+        </div>
+        <div className="gz-border gz-border-flip" />
+      </section>
+
+      {/* ── SEO: property in Madhubani ── */}
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 grid lg:grid-cols-[0.9fr_1.1fr] gap-10 items-start">
+          <div>
+            <h2 className="gz-h2">Property in Madhubani, sorted.</h2>
+            <p className="mt-4 text-[17px] leading-relaxed max-w-xl" style={{ color: "var(--text-secondary)" }}>
+              YourMithila is Madhubani&apos;s first local property and job platform. Browse verified flats,
+              rooms, shops and land in Madhubani, Darbhanga, Sitamarhi and across the Mithila region,
+              all in one place and free for seekers.
+            </p>
+            <div className="flex flex-wrap gap-2 mt-6">
+              {LOCALITIES.map(locality => (
+                <Link key={locality} href={`/properties?locality=${encodeURIComponent(locality)}`} className="gz-chip text-[13px]">
+                  Property in {locality}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4 sm:gap-5">
+            {QUICK.map((q, i) => (
+              <Link key={q.label} href={q.href} className="gz-cat gz-tilt" style={{ background: ["#FFF5D6", "#FFE3EC", "#E4E7FF", "#D8F3E2"][i], borderColor: "var(--ink)", minHeight: 120 }}>
+                <span className="gz-cat-emoji" aria-hidden="true">{q.icon}</span>
+                <span>
+                  <span className="gz-cat-label block" style={{ fontSize: 20 }}>{q.label}</span>
+                  <span className="gz-cat-hi">in Madhubani</span>
+                </span>
+                <span className="gz-cat-go" aria-hidden="true"><ArrowUpRight className="w-4 h-4" style={{ color: "#1D1410" }} /></span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS (a real sequence, so the steps are numbered) ── */}
+      <section className="pb-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionHead title="Three steps, no running around" sub="यह कैसे काम करता है" />
+          <ol className="grid sm:grid-cols-3 gap-5">
+            {STEPS.map((s, n) => (
+              <li key={s.title} className="card-warm p-6 gz-step">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="gz-step-num" style={{ background: s.bg }}>{n + 1}</span>
+                  <s.icon className="w-6 h-6" style={{ color: "var(--text-tertiary)" }} aria-hidden="true" />
+                </div>
+                <h3 className="text-2xl font-extrabold">{s.title} <span className="text-base font-semibold" style={{ color: "var(--text-tertiary)" }} lang="hi">{s.hi}</span></h3>
+                <p className="mt-1.5" style={{ color: "var(--text-secondary)" }}>{s.desc}</p>
+              </li>
+            ))}
+          </ol>
+          <ul className="flex flex-wrap gap-2.5 mt-8">
+            {PROMISES.map(({ icon: Icon, title, sub }) => (
+              <li key={title} className="gz-chip">
+                <Icon className="w-4 h-4" style={{ color: "var(--primary)" }} aria-hidden="true" />
+                {title}
+                <span className="font-medium text-[13px]" style={{ color: "var(--text-tertiary)" }} lang="hi">{sub}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ── CLOSING CTA (sindoor field) ── */}
+      <section className="gz-cta">
+        <div className="gz-border" />
+        <Sun className="gz-cta-sun hidden sm:block" />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
+          <div className="max-w-2xl">
+            <h2 className="gz-h2" style={{ color: "#fff", fontSize: "clamp(34px, 5.4vw, 64px)" }}>
+              Got a room or shop to rent out?
+            </h2>
+            <p className="mt-4 text-lg" style={{ color: "rgba(255,255,255,.92)" }}>
+              List it from ₹99 a month and seekers WhatsApp you directly.{" "}
+              <span lang="hi">अपनी संपत्ति लिस्ट करें।</span>
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 mt-8">
+              <Link href="/auth/register" className="btn-primary btn-haldi text-base px-7 py-3" style={{ borderColor: "var(--ink)", boxShadow: "4px 4px 0 var(--ink)" }}>
+                Create free account
+              </Link>
+              <Link href="/pricing" className="btn-outline text-base px-7 py-3" style={{ background: "transparent", color: "#fff", borderColor: "#fff", boxShadow: "4px 4px 0 var(--ink)" }}>
+                See pricing
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}

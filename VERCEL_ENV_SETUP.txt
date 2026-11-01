@@ -1,0 +1,84 @@
+# VERCEL ENVIRONMENT VARIABLES — COMPLETE SETUP
+# Go to: vercel.com → your project → Settings → Environment Variables
+# Add each of these. Select "Production + Preview + Development" for all.
+
+# ============================================================
+# REQUIRED — The app will not function correctly without these
+# ============================================================
+
+DATABASE_URL
+  Value: your PostgreSQL connection string
+
+DIRECT_URL
+  Value: your direct PostgreSQL connection string
+
+NEXTAUTH_URL
+  Value: https://yourmithila.in
+
+NEXTAUTH_SECRET
+  Value: a secure random string, for example: openssl rand -base64 32
+
+# ============================================================
+# OPTIONAL BUT IMPORTANT FOR FEATURE SETS
+# ============================================================
+
+GOOGLE_CLIENT_ID
+  Value: your Google OAuth client ID
+
+GOOGLE_CLIENT_SECRET
+  Value: your Google OAuth client secret
+
+RESEND_API_KEY
+  Value: your Resend API key
+
+FROM_EMAIL
+  Value: noreply@yourmithila.in
+
+RAZORPAY_KEY_ID
+  Value: your Razorpay key ID
+
+RAZORPAY_KEY_SECRET
+  Value: your Razorpay secret
+
+NEXT_PUBLIC_RAZORPAY_KEY_ID
+  Value: same as RAZORPAY_KEY_ID
+
+CLOUDINARY_CLOUD_NAME
+  Value: your Cloudinary cloud name
+
+CLOUDINARY_API_KEY
+  Value: your Cloudinary API key
+
+CLOUDINARY_API_SECRET
+  Value: your Cloudinary API secret
+
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  Value: your Google Maps JavaScript API key
+
+SENTRY_DSN
+  Value: your Sentry server DSN
+
+NEXT_PUBLIC_SENTRY_DSN
+  Value: your Sentry client DSN
+
+SENTRY_TRACES_SAMPLE_RATE
+  Value: 0.05
+
+SENTRY_ENVIRONMENT
+  Value: production
+
+# ============================================================
+# QUICK VERCEL CLI COMMANDS (OPTIONAL)
+# ============================================================
+# If you have the Vercel CLI installed, you can add the values like this:
+#
+#   npx vercel env add RESEND_API_KEY production
+#   npx vercel env add FROM_EMAIL production
+#   npx vercel env add NEXTAUTH_SECRET production
+#   npx vercel env add NEXTAUTH_URL production
+#
+# For preview/development, replace "production" with "preview" or "development".
+#
+# ============================================================
+# AFTER ADDING ALL VARIABLES: redeploy from Vercel
+# ============================================================

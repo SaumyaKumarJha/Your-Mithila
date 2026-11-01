@@ -1,0 +1,117 @@
+"use client";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useCallback } from "react";
+
+const LOCALITIES = [
+  "Rajnagar", "Lakhnaur", "Benipatti", "Jaynagar", "Madhubani Sadar",
+  "Phulparas", "Bisfi", "Pandaul", "Harlakhi", "Khajauli", "Darbhanga",
+  "Sitamarhi", "Andharatharhi", "Babangama", "Ghoghardiha", "Jhanjharpur",
+  "Khutauna",
+];
+
+interface Props {
+  searchParams: Record<string, string | undefined>;
+}
+
+export function JobFilters({ searchParams }: Props) {
+  const router = useRouter();
+  const [localityInput, setLocalityInput] = useState(searchParams.locality ?? "");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const applyFilter = useCallback((key: string, value: string) => {
+    const params = new URLSearchParams();
+    // Carry over existing params
+    Object.entries(searchParams).forEach(([k, v]) => {
+      if (v && k !== key && k !== "page") params.set(k, v);
+    });
+    if (value) params.set(key, value);
+    router.push(`/jobs?${params.toString()}`);
+  }, [searchParams, router]);
+
+  const filteredLocalities = LOCALITIES.filter(l =>
+    l.toLowerCase().includes(localityInput.toLowerCase())
+  );
+
+  return (
+    <div className="flex flex-wrap gap-2 mb-4 p-4 rounded-xl border"
+      style={{ background: "var(--surface-alt)", borderColor: "var(--border)" }}>
+
+      {/* Org type filter */}
+      <select
+        value={searchParams.orgType ?? ""}
+        onChange={e => applyFilter("orgType", e.target.value)}
+        className="text-sm rounded-lg px-3 py-1.5 border outline-none transition-colors"
+        style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--text-primary)" }}
+      >
+        <option value="">All Organizations</option>
+        <option value="HOTEL">🏨 Hotel</option>
+        <option value="HOSPITAL">🏥 Hospital</option>
+        <option value="SCHOOL">🏫 School</option>
+        <option value="SHOP">🏪 Shop</option>
+        <option value="FACTORY">🏭 Factory</option>
+        <option value="OFFICE">🏢 Office</option>
+        <option value="HOME">🏠 Home</option>
+        <option value="OTHER">💼 Other</option>
+      </select>
+
+      {/* Min salary filter */}
+      <select
+        value={searchParams.minSalary ?? ""}
+        onChange={e => applyFilter("minSalary", e.target.value)}
+        className="text-sm rounded-lg px-3 py-1.5 border outline-none transition-colors"
+        style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--text-primary)" }}
+      >
+        <option value="">Any Salary</option>
+        <option value="3000">₹3,000+</option>
+        <option value="5000">₹5,000+</option>
+        <option value="8000">₹8,000+</option>
+        <option value="10000">₹10,000+</option>
+        <option value="15000">₹15,000+</option>
+      </select>
+
+      {/* Locality autocomplete */}
+      <div className="relative">
+        <input
+          type="text"
+          value={localityInput}
+          onChange={e => { setLocalityInput(e.target.value); setShowSuggestions(true); }}
+          onFocus={() => setShowSuggestions(true)}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+          placeholder="Filter by area..."
+          className="text-sm rounded-lg px-3 py-1.5 border outline-none transition-colors w-36"
+          style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--text-primary)" }}
+        />
+        {showSuggestions && localityInput && filteredLocalities.length > 0 && (
+          <div className="absolute top-full left-0 mt-1 w-48 rounded-xl shadow-lg border z-20 max-h-48 overflow-y-auto"
+            style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+            {filteredLocalities.map(l => (
+              <button
+                key={l}
+                onMouseDown={() => {
+                  setLocalityInput(l);
+                  setShowSuggestions(false);
+                  applyFilter("locality", l);
+                }}
+                className="w-full text-left px-3 py-2 text-sm transition-colors hover:bg-[var(--primary-light)] hover:text-[var(--primary)]"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Clear filters */}
+      {(searchParams.orgType || searchParams.minSalary || searchParams.locality) && (
+        <a
+          href="/jobs"
+          className="text-sm px-3 py-1.5 rounded-lg border transition-colors"
+          style={{ borderColor: "var(--border)", color: "var(--text-tertiary)" }}
+        >
+          ✕ Clear
+        </a>
+      )}
+    </div>
+  );
+}

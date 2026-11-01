@@ -1,0 +1,250 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ── Mithila-inspired warm palette ── */
+  --primary:            #B45309;   /* deep saffron / amber */
+  --primary-hover:      #92400E;
+  --primary-light:      #FEF3C7;
+  --primary-foreground: #FFFFFF;
+
+  --secondary:          #166534;   /* forest green */
+  --secondary-hover:    #14532D;
+  --secondary-light:    #DCFCE7;
+  --secondary-foreground: #FFFFFF;
+
+  --accent:             #C2410C;   /* terracotta */
+  --accent-light:       #FFF7ED;
+  --accent-foreground:  #FFFFFF;
+
+  --brand-gold:         #D97706;
+  --brand-saffron:      #F59E0B;
+
+  /* ── Backgrounds ── */
+  --background:         #FFFBF5;   /* warm cream */
+  --surface:            #FFFFFF;
+  --surface-alt:        #FEF9EE;   /* light parchment */
+
+  /* ── Borders ── */
+  --border:             #E8D5B0;   /* warm tan */
+  --border-light:       #F5ECD8;
+
+  /* ── Text ── */
+  --text-primary:       #1C1008;   /* near-black warm */
+  --text-secondary:     #78350F;   /* dark amber */
+  --text-tertiary:      #92400E;
+  --text-muted:         #D97706;
+
+  /* ── Semantic ── */
+  --success:            #166534;
+  --success-light:      #DCFCE7;
+  --warning:            #B45309;
+  --warning-light:      #FEF3C7;
+  --error:              #991B1B;
+  --error-light:        #FEF2F2;
+  --info:               #1D4ED8;
+  --info-light:         #EFF6FF;
+
+  /* ── Gradients ── */
+  --gradient-hero:      linear-gradient(135deg, #78350F 0%, #B45309 50%, #D97706 100%);
+  --gradient-hero-bg:   linear-gradient(135deg, #451A03 0%, #78350F 40%, #451A03 100%);
+  --gradient-brand:     linear-gradient(135deg, #B45309 0%, #D97706 50%, #F59E0B 100%);
+  --gradient-footer:    linear-gradient(135deg, #1C0A00 0%, #451A03 100%);
+}
+
+.dark {
+  --background:         #1A0E00;
+  --surface:            #2D1A00;
+  --surface-alt:        #3D2510;
+  --border:             #5C3A1A;
+  --border-light:       #3D2510;
+  --text-primary:       #FEF3C7;
+  --text-secondary:     #FDE68A;
+  --text-tertiary:      #F59E0B;
+  --text-muted:         #78350F;
+  --primary-light:      #451A03;
+  --secondary-light:    #14532D;
+  --accent-light:       #431407;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body, -apple-system), BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--background);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ── Buttons ── */
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  width: 100%;
+}
+.btn-group > * {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .btn-group > * {
+    width: auto;
+    flex: 0 0 auto;
+  }
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+  width: 100%;
+  max-width: 100%;
+}
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(180,83,9,0.28);
+}
+.btn-secondary {
+  background: var(--secondary);
+  color: white;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+  width: 100%;
+  max-width: 100%;
+}
+.btn-secondary:hover { background: var(--secondary-hover); }
+.btn-outline {
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  background: rgba(255,255,255,0.85);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+  width: 100%;
+  max-width: 100%;
+}
+.btn-outline:hover { background: var(--primary-light); }
+.btn-whatsapp {
+  background: #25D366;
+  color: white;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+  width: 100%;
+  max-width: 100%;
+}
+.btn-whatsapp:hover { background: #1da851; }
+
+@media (min-width: 640px) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline,
+  .btn-whatsapp {
+    width: auto;
+  }
+}
+
+/* ── Cards ── */
+.card-warm {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(180,83,9,0.06);
+  transition: all 0.2s;
+}
+.card-warm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(180,83,9,0.13);
+  border-color: var(--brand-gold);
+}
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Glass card ── */
+.glass-card {
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 16px;
+}
+
+/* ── Madhubani SVG pattern bg ── */
+.madhubani-bg {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23B45309' fill-opacity='0.05'%3E%3Cpath d='M30 0 L60 30 L30 60 L0 30 Z'/%3E%3Ccircle cx='30' cy='30' r='8'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ── Scrollbar ── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+html { scroll-behavior: smooth; }
+
+/* ── Skeleton ── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #FEF3C7 25%, #FDE68A 50%, #FEF3C7 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.dark .skeleton {
+  background: linear-gradient(90deg, #3D2510 25%, #5C3A1A 50%, #3D2510 75%);
+  background-size: 200% 100%;
+}
+
+/* ── Animations ── */
+@keyframes fadeIn  { from { opacity: 0; }                          to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes pulse-warm {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(180,83,9,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(180,83,9,0); }
+}
+.animate-fade-in   { animation: fadeIn  0.3s ease-in-out; }
+.animate-slide-up  { animation: slideUp 0.3s ease-out; }
+.animate-pulse-warm { animation: pulse-warm 2s infinite; }

@@ -1,0 +1,86 @@
+interface LogoProps {
+  size?: "sm" | "md" | "lg";
+  variant?: "full" | "icon" | "white";
+  className?: string;
+}
+
+export function Logo({ size = "md", variant = "full", className = "" }: LogoProps) {
+  const sizes = { sm: 28, md: 36, lg: 48 };
+  const h = sizes[size];
+
+  // Warm Mithila-inspired brand colors
+  const saffronColor = variant === "white" ? "#FFFFFF" : "var(--primary)";
+  const amberColor = variant === "white" ? "#FDE68A" : "var(--brand-saffron)";
+
+  return (
+    <div className={`flex items-center gap-2 ${className}`}>
+      <svg
+        width={h}
+        height={h}
+        viewBox="0 0 40 40"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        {/* House silhouette fill */}
+        <path
+          d="M20 4L4 16V36H15V26H25V36H36V16L20 4Z"
+          fill={saffronColor}
+          opacity="0.12"
+        />
+        {/* House outline */}
+        <path
+          d="M20 4L4 16V36H15V26H25V36H36V16L20 4Z"
+          stroke={saffronColor}
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        {/* Madhubani fish body — iconic Mithila motif */}
+        <ellipse cx="20" cy="22" rx="4" ry="5.5" fill={saffronColor} opacity="0.85" />
+        {/* Fish tail */}
+        <path d="M20 16.5 Q23.5 19 20 22 Q16.5 19 20 16.5Z" fill={amberColor} />
+        {/* Fish eye */}
+        <circle cx="21.5" cy="19" r="0.9" fill="white" />
+        {/* Mustard accent dot — top right, brand flair */}
+        <circle cx="33" cy="8" r="3" fill={amberColor} />
+        {/* Small dot inside mustard circle */}
+        <circle cx="33" cy="8" r="1.2" fill="white" opacity="0.6" />
+      </svg>
+
+      {variant !== "icon" && (
+        <span className="font-semibold tracking-tight leading-none select-none">
+          <span
+            style={{
+              fontWeight: 400,
+              color: variant === "white" ? "#FFFFFF" : "var(--text-primary)",
+            }}
+          >
+            Your
+          </span>
+          <span
+            style={{
+              fontWeight: 800,
+              background:
+                variant === "white"
+                  ? "none"
+                  : "linear-gradient(135deg, #B45309, #D97706)",
+              WebkitBackgroundClip: variant === "white" ? "unset" : "text",
+              WebkitTextFillColor:
+                variant === "white" ? "#FFFFFF" : "transparent",
+              backgroundClip: variant === "white" ? "unset" : "text",
+              color: variant === "white" ? "#FFFFFF" : undefined,
+            }}
+          >
+            Mithila
+          </span>
+        </span>
+      )}
+    </div>
+  );
+}
+
+// Backward-compatible alias
+export function LogoText({ className = "" }: { className?: string }) {
+  return <Logo size="md" variant="full" className={className} />;
+}

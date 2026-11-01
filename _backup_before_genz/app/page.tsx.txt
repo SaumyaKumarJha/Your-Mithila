@@ -1,0 +1,365 @@
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { MapPin, MessageCircle, Star, BadgeCheck, ArrowRight, Zap, IndianRupee } from "lucide-react";
+import { HeroSearchWrapper } from "@/components/shared/HeroSearchWrapper";
+import { PROPERTY_TYPE_LABELS } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
+
+const CATEGORIES = [
+  { type: "FLAT",      label: "Flat",      labelHi: "फ्लैट",   emoji: "🏢" },
+  { type: "ROOM",      label: "Room",      labelHi: "कमरा",    emoji: "🛏️" },
+  { type: "HOUSE",     label: "House",     labelHi: "मकान",    emoji: "🏠" },
+  { type: "SHOP",      label: "Shop",      labelHi: "दुकान",   emoji: "🏪" },
+  { type: "LAND",      label: "Land",      labelHi: "जमीन",    emoji: "🌿" },
+  { type: "WAREHOUSE", label: "Warehouse", labelHi: "गोदाम",   emoji: "🏭" },
+  { type: "OFFICE",    label: "Office",    labelHi: "ऑफिस",    emoji: "💼" },
+];
+
+function PropertyCard({ p }: { p: any }) {
+  const phone = p.contactWhatsapp || p.contactPhone;
+  const waMsg = `Hi, I saw your ${PROPERTY_TYPE_LABELS[p.type] ?? p.type} listing on Your Mithila - "${p.title}". I am interested.`;
+  return (
+    <div className="card-warm rounded-2xl overflow-hidden group">
+      <Link href={`/properties/${p.id}`}>
+        <div className="relative h-48 overflow-hidden" style={{ background: "var(--surface-alt)" }}>
+          {p.images?.[0] ? (
+            <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-5xl">
+              {CATEGORIES.find(c => c.type === p.type)?.emoji ?? "🏠"}
+            </div>
+          )}
+          {p.isFeatured && (
+            <div className="absolute top-3 left-3 text-white text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1"
+              style={{ background: "#F59E0B" }}>
+              <Star className="w-3 h-3 fill-current" /> Featured
+            </div>
+          )}
+          <div className="absolute top-3 right-3">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full text-white"
+              style={{ background: p.purpose === "RENT" ? "var(--secondary)" : "var(--primary)" }}>
+              {p.purpose === "RENT" ? "Rent" : "Sale"}
+            </span>
+          </div>
+        </div>
+      </Link>
+      <div className="p-3">
+        <p className="text-xs flex items-center gap-1 mb-0.5" style={{ color: "var(--text-tertiary)" }}>
+          <MapPin className="w-3 h-3" /> {p.locality}, Mithila Region
+          {p.isVerified && <BadgeCheck className="w-3.5 h-3.5 ml-1" style={{ color: "var(--info)" }} />}
+        </p>
+        <Link href={`/properties/${p.id}`}>
+          <h3 className="font-semibold text-sm truncate hover:text-[var(--primary)] transition-colors" style={{ color: "var(--text-primary)" }}>{p.title}</h3>
+        </Link>
+        <div className="flex items-center justify-between mt-2">
+          <p className="font-bold text-sm" style={{ color: "var(--primary)" }}>
+            ₹{p.price.toLocaleString("en-IN")}
+            <span className="font-normal text-xs" style={{ color: "var(--text-tertiary)" }}>
+              {p.priceUnit === "MONTHLY" ? "/mo" : p.priceUnit === "YEARLY" ? "/yr" : ""}
+            </span>
+          </p>
+          <a href={`https://wa.me/91${phone}?text=${encodeURIComponent(waMsg)}`} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full transition-colors text-white"
+            style={{ background: "#25D366" }}>
+            <MessageCircle className="w-3 h-3" /> WhatsApp
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function JobCard({ j }: { j: any }) {
+  const phone = j.contactWhatsapp || j.contactPhone;
+  const waMsg = `Hi, I saw the job "${j.title}" at ${j.organization} on Your Mithila. I am interested.`;
+  const typeColors: Record<string, string> = {
+    FULL_TIME: "var(--secondary)", PART_TIME: "var(--accent)", DAILY_WAGE: "var(--primary)", CONTRACT: "#7B5EA7",
+  };
+  return (
+    <div className="card-warm rounded-2xl p-4">
+      <div className="flex items-start gap-3">
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: "var(--primary-light)" }}>🏢</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-semibold text-sm leading-tight" style={{ color: "var(--text-primary)" }}>{j.title}</h3>
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 text-white"
+              style={{ background: typeColors[j.jobType] ?? "var(--text-tertiary)" }}>
+              {j.jobType.replace("_", " ")}
+            </span>
+          </div>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>{j.organization}</p>
+          <div className="flex items-center gap-3 mt-2">
+            <span className="text-xs flex items-center gap-1" style={{ color: "var(--text-tertiary)" }}>
+              <MapPin className="w-3 h-3" />{j.locality}
+            </span>
+            {j.salaryMin && (
+              <span className="text-xs font-semibold flex items-center gap-0.5" style={{ color: "var(--success)" }}>
+                <IndianRupee className="w-3 h-3" />{j.salaryMin.toLocaleString("en-IN")}+
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="flex gap-2 mt-3">
+        <Link href={`/jobs/${j.id}`} className="flex-1 text-center text-xs font-semibold py-2.5 rounded-xl transition-colors"
+          style={{ background: "var(--surface-alt)", color: "var(--text-secondary)" }}>
+          View Details
+        </Link>
+        <a href={`https://wa.me/91${phone}?text=${encodeURIComponent(waMsg)}`} target="_blank" rel="noopener noreferrer"
+          className="flex-1 text-center text-xs font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 text-white"
+          style={{ background: "#25D366" }}>
+          <MessageCircle className="w-3 h-3" /> Apply
+        </a>
+      </div>
+    </div>
+  );
+}
+
+export default async function HomePage() {
+  const [properties, jobs, propertyCount, jobCount] = await Promise.all([
+    prisma.property.findMany({
+      where: { isAvailable: true },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      take: 6,
+    }),
+    prisma.job.findMany({
+      where: { isActive: true },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      take: 6,
+    }),
+    prisma.property.count({ where: { isAvailable: true } }).catch(() => 0),
+    prisma.job.count({ where: { isActive: true } }).catch(() => 0),
+  ]);
+
+  return (
+    <main className="min-h-screen" style={{ background: "var(--background)" }}>
+
+      {/* ── HERO ── */}
+      <section className="relative py-20 px-4 overflow-hidden" style={{ background: "var(--gradient-hero-bg)" }}>
+        {/* Ambient glow blobs */}
+        <div className="absolute top-10 left-10 w-72 h-72 rounded-full pointer-events-none"
+          style={{ background: "var(--gradient-brand)", opacity: 0.08, filter: "blur(80px)" }} />
+        <div className="absolute bottom-10 right-10 w-96 h-96 rounded-full pointer-events-none"
+          style={{ background: "var(--gradient-brand)", opacity: 0.06, filter: "blur(100px)" }} />
+
+        <div className="relative z-10 max-w-3xl mx-auto text-center">
+          {/* Tag */}
+          <div className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full mb-6 border"
+            style={{ background: "rgba(255,255,255,0.10)", color: "#FDE68A", borderColor: "rgba(253,230,138,0.3)" }}>
+            <Zap className="w-3 h-3" /> मिथिला का अपना डिजिटल मंच
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-6xl font-black leading-tight mb-4 text-white">
+            Your Home. Your Job.{" "}
+            <span className="gradient-text">Your Mithila.</span>
+          </h1>
+
+          <p className="text-base sm:text-lg mb-6" style={{ color: "rgba(253,230,138,0.9)" }}>
+            घर, दुकान, नौकरी — सब कुछ एक जगह<br />
+            <span className="text-sm" style={{ color: "rgba(255,255,255,0.72)" }}>
+              Properties & Jobs across Mithila Region, Bihar
+            </span>
+          </p>
+
+          {/* Search bar */}
+          <div className="glass-card max-w-2xl mx-auto p-4 md:p-5">
+            <HeroSearchWrapper />
+          </div>
+
+          {/* Live stats bar */}
+          <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
+            <span>{propertyCount}+ properties listed</span>
+            <span>·</span>
+            <span>{jobCount}+ active jobs</span>
+            <span>·</span>
+            <span>Free for seekers</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CATEGORIES ── */}
+      <section className="py-8 px-4 border-b" style={{ borderColor: "var(--border)" }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-3 overflow-x-auto pb-1 justify-center flex-wrap sm:flex-nowrap scrollbar-hide">
+            {CATEGORIES.map(({ type, label, labelHi, emoji }) => (
+              <Link key={type} href={`/properties?type=${type}`}
+                className="flex flex-col items-center gap-1.5 px-5 py-3 rounded-2xl border transition-all group flex-shrink-0 min-w-[80px] hover:border-[var(--primary)] hover:bg-[var(--primary-light)]"
+                style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+                <span className="text-2xl">{emoji}</span>
+                <span className="text-xs font-semibold group-hover:text-[var(--primary)] transition-colors" style={{ color: "var(--text-secondary)" }}>{label}</span>
+                <span className="text-xs" style={{ color: "var(--text-muted)" }}>{labelHi}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURED PROPERTIES ── */}
+      <section className="py-12 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
+                Properties in Mithila Region
+              </h2>
+              <p className="text-sm mt-0.5" style={{ color: "var(--text-tertiary)" }}>मिथिला क्षेत्र में संपत्तियां</p>
+            </div>
+            <Link href="/properties" className="text-sm font-semibold flex items-center gap-1 hover:opacity-80 transition-opacity" style={{ color: "var(--primary)" }}>
+              View all <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          {properties.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {properties.map(p => <PropertyCard key={p.id} p={p} />)}
+            </div>
+          ) : (
+            <div className="text-center py-16 rounded-2xl" style={{ background: "var(--surface-alt)" }}>
+              <p className="text-4xl mb-3">🏠</p>
+              <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Be the first to list a property!</p>
+              <Link href="/auth/register" className="mt-3 inline-block text-sm font-semibold hover:underline" style={{ color: "var(--primary)" }}>
+                List your property →
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── LATEST JOBS ── */}
+      <section className="py-12 px-4" style={{ background: "var(--surface-alt)" }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Latest Jobs</h2>
+              <p className="text-sm mt-0.5" style={{ color: "var(--text-tertiary)" }}>नवीनतम नौकरियां</p>
+            </div>
+            <Link href="/jobs" className="text-sm font-semibold flex items-center gap-1 hover:opacity-80 transition-opacity" style={{ color: "var(--primary)" }}>
+              View all <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          {jobs.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {jobs.map(j => <JobCard key={j.id} j={j} />)}
+            </div>
+          ) : (
+            <div className="text-center py-16 rounded-2xl" style={{ background: "var(--surface)" }}>
+              <p className="text-4xl mb-3">💼</p>
+              <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>No jobs posted yet.</p>
+              <Link href="/auth/register" className="mt-3 inline-block text-sm font-semibold hover:underline" style={{ color: "var(--primary)" }}>
+                Post a job →
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── SEO KEYWORD SECTION — helps Google rank for "property in madhubani" ── */}
+      <section className="border-y py-10" style={{ background: "var(--surface-alt)", borderColor: "var(--border)" }}>
+        <div className="max-w-5xl mx-auto px-4">
+          <h2 className="text-2xl font-bold mb-2 text-center" style={{ color: "var(--text-primary)" }}>
+            Property in Madhubani — Find Your Perfect Space
+          </h2>
+          <p className="text-center mb-8 max-w-2xl mx-auto text-sm" style={{ color: "var(--text-secondary)" }}>
+            YourMithila is Madhubani&apos;s first local property and job platform.
+            Browse verified flats, rooms, shops, and land in Madhubani, Darbhanga,
+            Sitamarhi and across the Mithila region — all in one place, completely free for seekers.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { icon: "🏢", label: "Flat for rent",  desc: "in Madhubani", href: "/properties?type=FLAT&purpose=RENT" },
+              { icon: "🛏️", label: "Room for rent",  desc: "in Madhubani", href: "/properties?type=ROOM&purpose=RENT" },
+              { icon: "🏪", label: "Shop for rent",  desc: "in Madhubani", href: "/properties?type=SHOP&purpose=RENT" },
+              { icon: "🌿", label: "Land for sale",  desc: "in Madhubani", href: "/properties?type=LAND&purpose=SALE" },
+            ].map(item => (
+              <Link key={item.label} href={item.href}
+                className="rounded-xl border p-4 text-center transition-all group hover:shadow-md"
+                style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+                <div className="text-3xl mb-2">{item.icon}</div>
+                <p className="text-sm font-semibold group-hover:text-[var(--primary)] transition-colors" style={{ color: "var(--text-primary)" }}>
+                  {item.label}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{item.desc}</p>
+              </Link>
+            ))}
+          </div>
+          <div className="flex flex-wrap justify-center gap-2 mt-6">
+            {[
+              "Rajnagar", "Lakhnaur", "Benipatti", "Jaynagar",
+              "Madhubani Sadar", "Phulparas", "Bisfi", "Pandaul",
+            ].map(locality => (
+              <Link key={locality}
+                href={`/properties?locality=${encodeURIComponent(locality)}`}
+                className="text-xs px-3 py-1.5 rounded-full border transition-all hover:text-[var(--primary)]"
+                style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--text-secondary)" }}>
+                Property in {locality}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section className="py-12 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>How it works</h2>
+          <p className="text-sm mb-8" style={{ color: "var(--text-tertiary)" }}>यह कैसे काम करता है</p>
+          <div className="flex flex-wrap justify-center gap-6 text-center">
+            {[
+              { icon: "🔍", step: "1. Search",  desc: "Filter by area and budget" },
+              { icon: "📋", step: "2. Browse",  desc: "View details and photos" },
+              { icon: "💬", step: "3. Contact", desc: "WhatsApp the owner directly" },
+            ].map(item => (
+              <div key={item.step} className="flex flex-col items-center gap-2 w-40">
+                <span className="text-3xl">{item.icon}</span>
+                <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{item.step}</p>
+                <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── WHY CHOOSE US (compact 2-line) ── */}
+      <section className="py-10 px-4" style={{ background: "var(--surface-alt)" }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+            {[
+              { icon: "🔍", title: "Free to Browse",    sub: "मुफ्त में देखें" },
+              { icon: "✅", title: "Verified Listings", sub: "सत्यापित लिस्टिंग" },
+              { icon: "💬", title: "WhatsApp Direct",   sub: "सीधे WhatsApp" },
+              { icon: "🛡️", title: "Local & Trusted",  sub: "स्थानीय और विश्वसनीय" },
+            ].map(({ icon, title, sub }) => (
+              <div key={title} className="card-warm rounded-2xl p-4">
+                <div className="text-2xl mb-2">{icon}</div>
+                <p className="font-semibold text-xs" style={{ color: "var(--text-primary)" }}>{title}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>{sub}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA BANNER ── */}
+      <section className="py-14 px-4 text-center" style={{ background: "var(--gradient-hero-bg)" }}>
+        <div className="max-w-xl mx-auto">
+          <h2 className="text-2xl font-black mb-2 text-white">List your property today</h2>
+          <p className="text-sm mb-6" style={{ color: "rgba(253,230,138,0.85)" }}>
+            Start at just ₹99/month · अपनी संपत्ति लिस्ट करें
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <Link href="/auth/register" className="btn-primary px-8 py-3 rounded-full text-sm w-full sm:w-auto">
+              Get Started — Free
+            </Link>
+            <Link href="/pricing"
+              className="px-8 py-3 rounded-full text-sm font-semibold border transition-all w-full sm:w-auto text-center"
+              style={{ borderColor: "rgba(253,230,138,0.4)", color: "#FDE68A", background: "rgba(255,255,255,0.08)" }}>
+              See Pricing
+            </Link>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  );
+}
